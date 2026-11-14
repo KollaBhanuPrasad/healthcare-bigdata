@@ -1,0 +1,14 @@
+{
+    "dataset_name": "Montgomery County Chest X-ray Set (NLM/NIH)",
+    "source_url": "https://data.lhncbc.nlm.nih.gov/public/Tuberculosis-Chest-X-ray-Datasets/Montgomery-County-CXR-Set/MontgomerySet",
+    "total_images": 138,
+    "normal_cases": 80,
+    "tb_positive_cases": 58,
+    "total_image_size_mb": 585.59,
+    "verification_status": true,
+    "masks_available": {
+        "left_mask_count": 138,
+        "right_mask_count": 138
+    },
+    "clinical_readings_count": 138
+}

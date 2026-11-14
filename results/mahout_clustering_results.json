@@ -1,0 +1,39 @@
+{
+  "algorithm": "Apache Mahout K-Means (Euclidean Distance)",
+  "k_clusters": 2,
+  "sample_count": 138,
+  "feature_dimensions": 6093,
+  "inertia": 749385.2,
+  "silhouette_score": 0.1165,
+  "adjusted_rand_index": -0.0011,
+  "cluster_distribution": {
+    "1": 89,
+    "0": 49
+  },
+  "purity_analysis": {
+    "Cluster_0": {
+      "total_samples": 49,
+      "normal_samples": 27,
+      "tb_positive_samples": 22,
+      "dominant_pattern": "Normal",
+      "purity_percentage": 55.1
+    },
+    "Cluster_1": {
+      "total_samples": 89,
+      "normal_samples": 53,
+      "tb_positive_samples": 36,
+      "dominant_pattern": "Normal",
+      "purity_percentage": 59.55
+    }
+  },
+  "confusion_matrix_with_ground_truth": [
+    [
+      27,
+      53
+    ],
+    [
+      22,
+      36
+    ]
+  ]
+}

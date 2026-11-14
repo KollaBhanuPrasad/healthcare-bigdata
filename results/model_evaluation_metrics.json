@@ -1,0 +1,48 @@
+{
+  "model_name": "Random Forest Classifier",
+  "n_estimators": 100,
+  "max_depth": 10,
+  "cv_5fold_accuracy_mean": 0.8273,
+  "cv_5fold_accuracy_std": 0.0603,
+  "cv_5fold_f1_mean": 0.7724,
+  "test_sample_size": 28,
+  "accuracy": 0.8929,
+  "precision": 0.9091,
+  "recall_sensitivity": 0.8333,
+  "specificity": 0.9375,
+  "f1_score": 0.8696,
+  "roc_auc": 0.9792,
+  "confusion_matrix": {
+    "true_negatives": 15,
+    "false_positives": 1,
+    "false_negatives": 2,
+    "true_positives": 10
+  },
+  "classification_report": {
+    "Normal": {
+      "precision": 0.8823529411764706,
+      "recall": 0.9375,
+      "f1-score": 0.9090909090909091,
+      "support": 16.0
+    },
+    "TB_Positive": {
+      "precision": 0.9090909090909091,
+      "recall": 0.8333333333333334,
+      "f1-score": 0.8695652173913043,
+      "support": 12.0
+    },
+    "accuracy": 0.8928571428571429,
+    "macro avg": {
+      "precision": 0.8957219251336899,
+      "recall": 0.8854166666666667,
+      "f1-score": 0.8893280632411067,
+      "support": 28.0
+    },
+    "weighted avg": {
+      "precision": 0.8938120702826584,
+      "recall": 0.8928571428571429,
+      "f1-score": 0.8921513269339355,
+      "support": 28.0
+    }
+  }
+}

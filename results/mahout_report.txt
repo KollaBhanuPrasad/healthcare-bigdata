@@ -1,0 +1,19 @@
+=================================================================
+        APACHE MAHOUT K-MEANS CLUSTERING REPORT         
+=================================================================
+Number of Clusters (K)   : 2
+Inertia (Sum of Squares) : 749385.20
+Silhouette Coefficient   : 0.1165
+Adjusted Rand Index      : -0.0011
+
+CLUSTER PURITY & BREAKDOWN:
+  [Cluster_0] Total: 49 | Normal: 27 | TB+: 22 | Purity: 55.1%
+  [Cluster_1] Total: 89 | Normal: 53 | TB+: 36 | Purity: 59.55%
+
+EQUIVALENT CLI COMMANDS ON APACHE MAHOUT CLUSTER:
+  mahout seq2sparse -i /healthcare/mahout/vectors -o /healthcare/mahout/sparse-vectors
+  mahout kmeans -i /healthcare/mahout/sparse-vectors -c /healthcare/mahout/initial-clusters \
+    -o /healthcare/mahout/clusters -dm org.apache.mahout.common.distance.EuclideanDistanceMeasure \
+    -x 10 -k 2 -ow
+  mahout clusterdump -i /healthcare/mahout/clusters/clusters-*-final -o /healthcare/mahout/dump.txt
+=================================================================

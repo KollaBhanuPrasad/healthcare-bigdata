@@ -1,0 +1,156 @@
+APACHE HIVE HEALTHCARE BIG DATA ANALYTICS EXECUTION LOG
+======================================================================
+
+--- QUERY 1 ---
+SQL: -- --------------------------------------------------------------------
+-- QUERY 1: Overall Disease Distribution & Prevalence
+-- --------------------------------------------------------------------
+SELECT 
+    diagnosis,
+    COUNT(*) AS total_patients,
+    ROUND(COUNT(*) * 100.0 / SUM(COUNT(*)) OVER(), 2) AS prevalence_percentage
+FROM patient_metadata
+GROUP BY diagnosis
+
+  diagnosis  total_patients  prevalence_percentage
+TB_Positive              58                  42.03
+     Normal              80                  57.97
+
+--- QUERY 2 ---
+SQL: -- --------------------------------------------------------------------
+-- QUERY 2: Gender Stratification Across Diagnostic Categories
+-- --------------------------------------------------------------------
+SELECT 
+    diagnosis,
+    patient_gender,
+    COUNT(*) AS patient_count,
+    ROUND(COUNT(*) * 100.0 / SUM(COUNT(*)) OVER(PARTITION BY diagnosis), 2) AS gender_share_pct
+FROM patient_metadata
+WHERE patient_gender IN ('Male', 'Female')
+GROUP BY diagnosis, patient_gender
+ORDER BY diagnosis, patient_count DESC
+
+  diagnosis patient_gender  patient_count  gender_share_pct
+     Normal         Female             53             67.09
+     Normal           Male             26             32.91
+TB_Positive           Male             37             63.79
+TB_Positive         Female             21             36.21
+
+--- QUERY 3 ---
+SQL: -- --------------------------------------------------------------------
+-- QUERY 3: Patient Age Demographics & Risk Analysis
+-- --------------------------------------------------------------------
+SELECT 
+    diagnosis,
+    COUNT(CASE WHEN patient_age > 0 THEN 1 END) AS recorded_age_count,
+    ROUND(AVG(CASE WHEN patient_age > 0 THEN patient_age END), 2) AS mean_age,
+    ROUND(STDDEV(CASE WHEN patient_age > 0 THEN patient_age END), 2) AS std_age,
+    MIN(CASE WHEN patient_age > 0 THEN patient_age END) AS min_age,
+    MAX(CASE WHEN patient_age > 0 THEN patient_age END) AS max_age
+FROM patient_metadata
+GROUP BY diagnosis
+
+  diagnosis  recorded_age_count  mean_age  std_age  min_age  max_age
+TB_Positive                  58     48.14    20.13       14       89
+     Normal                  80     34.29    15.44        4       70
+
+--- QUERY 4 ---
+SQL: -- --------------------------------------------------------------------
+-- QUERY 4: Image Storage Footprint Analysis Across Diagnoses
+-- --------------------------------------------------------------------
+SELECT 
+    p.diagnosis,
+    COUNT(i.filename) AS image_count,
+    ROUND(SUM(i.file_size_kb) / 1024.0, 2) AS total_storage_mb,
+    ROUND(AVG(i.file_size_kb), 2) AS avg_image_size_kb,
+    ROUND(MIN(i.file_size_kb), 2) AS min_image_size_kb,
+    ROUND(MAX(i.file_size_kb), 2) AS max_image_size_kb
+FROM patient_metadata p
+JOIN image_metadata i ON p.patient_id = i.patient_id
+GROUP BY p.diagnosis
+
+  diagnosis  image_count  total_storage_mb  avg_image_size_kb  min_image_size_kb  max_image_size_kb
+     Normal           80            333.64            4270.65            2104.01            7018.12
+TB_Positive           58            251.94            4448.13            2521.84            6578.92
+
+--- QUERY 5 ---
+SQL: -- --------------------------------------------------------------------
+-- QUERY 5: Segmentation Mask Coverage Rate
+-- --------------------------------------------------------------------
+SELECT 
+    COUNT(*) AS total_images,
+    SUM(CASE WHEN has_left_mask AND has_right_mask THEN 1 ELSE 0 END) AS complete_bilateral_masks,
+    ROUND(SUM(CASE WHEN has_left_mask AND has_right_mask THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 2) AS segmentation_readiness_pct
+FROM image_metadata
+
+ total_images  complete_bilateral_masks  segmentation_readiness_pct
+          138                     138.0                       100.0
+
+--- QUERY 6 ---
+SQL: -- --------------------------------------------------------------------
+-- QUERY 6: Preprocessed Image Intensity Variations (Normal vs TB)
+-- --------------------------------------------------------------------
+SELECT 
+    p.diagnosis,
+    COUNT(a.processed_filename) AS processed_image_count,
+    ROUND(AVG(a.mean_intensity), 4) AS avg_pixel_mean,
+    ROUND(AVG(a.std_intensity), 4) AS avg_pixel_std,
+    ROUND(MIN(a.mean_intensity), 4) AS lowest_pixel_mean,
+    ROUND(MAX(a.mean_intensity), 4) AS highest_pixel_mean
+FROM patient_metadata p
+JOIN preprocessing_audit a ON p.patient_id = REPLACE(a.original_filename, '.png', '')
+WHERE a.status = 'Success'
+GROUP BY p.diagnosis
+
+  diagnosis  processed_image_count  avg_pixel_mean  avg_pixel_std  lowest_pixel_mean  highest_pixel_mean
+TB_Positive                     58          0.4459         0.3225             0.3059              0.6051
+     Normal                     80          0.4407         0.3239             0.1543              0.6051
+
+--- QUERY 7 ---
+SQL: -- --------------------------------------------------------------------
+-- QUERY 7: High-Risk Cohorts (Age > 45 with Tuberculosis)
+-- --------------------------------------------------------------------
+SELECT 
+    p.patient_id,
+    p.patient_gender,
+    p.patient_age,
+    p.radiology_finding
+FROM patient_metadata p
+WHERE p.diagnosis = 'TB_Positive' AND p.patient_age >= 45
+ORDER BY p.patient_age DESC
+
+   patient_id patient_gender  patient_age                                                                                                                                                                                                                                                                                                                                                                   radiology_finding
+MCUCXR_0213_1         Female           89                                                                                                                                                                                                                                                                                                    Patient's Sex: F Patient's Age: 089Y inactive scars RML. has completed treatment
+MCUCXR_0311_1         Female           89                                                                                                                                                                                      Patient's Sex: F Patient's Age: 089Y on Rx for culture proven TB. has been clearing of infiltrates in te rt lung. thre is some re-accomodation of pleural fluid along lateral left chest wall.
+MCUCXR_0309_1         Female           89                                                                                                                                                                                                                                                       Patient's Sex: F Patient's Age: 089Y improvements after Rx. Has pleural, pulmonary, and probably percardial TB, pan-sensitive
+MCUCXR_0258_1         Female           88                                                                                                                                                                                                                                                                                                      Patient's Sex: F Patient's Age: 088Y active PTB with compicating CHF condition
+MCUCXR_0117_1         Female           85                                                                                                                                                                                                                                                                                Patient's Sex: F Patient's Age: 085Y stable CXR since 6M; off Rx since 6M (same pt as MCUCXR_0113_1)
+MCUCXR_0113_1         Female           84                                                                                                                                                      Patient's Sex: F Patient's Age: 084Y bilateral miliary nodules diffusely with RML infiltrate and right pleural effusion; an old calcified granuloma is present behind heart in the LLL; all findings consistent with active TB
+MCUCXR_0251_1         Female           77                                                                                                                                                                                                                                                    Patient's Sex: F Patient's Age: 077Y RUL fibrocavitary disease with volume loss and tracheal deviation to right; COPD scoliosis;
+MCUCXR_0194_1           Male           73                                                                                                                                                           Patient's Sex: M Patient's Age: 073Y h/o TB rx in xxx 44Y ago with IN PAS SM; has rt apical dense fibrosis, calcification rt lower lung and pleural angle blunting; all compared with inactive disease and h/o treatment.
+MCUCXR_0348_1         Female           69                                                                                                                                                                                                        Patient's Sex: F Patient's Age: 069Y scoliosis to the left with some scarring in LLL and over the left apex; calcified granuloma in the rt lung. could be related to old TB.
+MCUCXR_0203_1           Male           68                                                                                                                                                                                                                          Patient's Sex: M Patient's Age: 068Y bilateral changes of cavitary TB in upper lobes, more extensive on the right; the RML appears to be involved as well.
+MCUCXR_0144_1           Male           67                                                                                                                                                                                                                                                                                                             Patient's Sex: M Patient's Age: 067Y smear positive, active TB LUL apex
+MCUCXR_0223_1           Male           67                                                                                                                                                                                                                                                                                                                    Patient's Sex: M Patient's Age: 067Y improving infiltrate in LUL
+MCUCXR_0399_1         Female           63                                                                                                                                                                                                                                                Patient's Sex: F Patient's Age: 063Y large infiltrate RUL with cavitation plus infiltrate in RML. consistent with active cavitary TB
+MCUCXR_0294_1         Female           63                                                                                                                                                                                                                                                                                                                          Patient's Sex: F Patient's Age: 063Y inactive TB scars LUL
+MCUCXR_0188_1           Male           61                                            Patient's Sex: M Patient's Age: 061Y cavitary disease RUL with possible small loculated pneumothorax adjacent; has multiuple coarse nodules in RLL as well as lesser amounts in LLL; pt has h/o prior treatment 1Y (6Y ago); no comparison films available; relapsed disease highly likely. pt grew NTM from several specimens, not MTB.
+MCUCXR_0362_1           Male           61                                                                                                                                                                                              Patient's Sex: M Patient's Age: 061Y rt pleural effusion with some nodular infiltrate in rt lower lung; there are findings also of previous cardiac surgery; suspicious for active TB.
+MCUCXR_0104_1           Male           59                                                                                                                                                                                                                                         Patient's Sex: M Patient's Age: 059Y inactive TB scars LUL, unchanged for 2Y, pt previously treated DOT (17Y ago) for pan-sensitive disease
+MCUCXR_0243_1           Male           54                                                                                                                                                                                                                                                                                                                Patient's Sex: M Patient's Age: 054Y improving infiltrate, active TB
+MCUCXR_0173_1           Male           54                                                                                                                                                                                               Patient's Sex: M Patient's Age: 054Y improved infiltrates in both lungs; a cavity is now visible in lingula compared with 1M ago. culture positive, pan-sensitive, on HRZ(E) since 1M
+MCUCXR_0289_1           Male           52                                                                                                                                                                                                                                                                                                        Patient's Sex: M Patient's Age: 052Y RUL cavitary infiltrate; positive smear
+MCUCXR_0390_1           Male           52                                                                                                                                                                                                                                               Patient's Sex: M Patient's Age: 052Y Rt apical scarring. LUL scars and some infiltrates as well; findings consistent with TB; ?active
+MCUCXR_0282_1           Male           51                                                                                                                                                                                                                                                                                                                              Patient's Sex: M Patient's Age: 051Y inactive TB scars
+MCUCXR_0162_1           Male           49 Patient's Sex: M Patient's Age: 049Y RUL apical fibrotic disease with some calcifications; extensive irregular infiltrates in left lung with a large area of cavitation/ findings consistent with old inactive disease in RL and new active TB in LL. On the lordotic view, in the rt apex a large thin walled cavity is visible, making active disease in the area likely as well.
+MCUCXR_0170_1           Male           49                                                                                                                                                                Patient's Sex: M Patient's Age: 049Y CXR similar to prior views 1M and 2M ago with some slight improvement; on HRZ(E)x2 months, AFB smears neg now, will switch to HR only (same pt as MCUCXR_0166_1, MCUCXR_0162_1)
+MCUCXR_0166_1           Male           49                                                                                                                                                                                                                                                                                                           Patient's Sex: M Patient's Age: 049Y NO REPORT (same pt as MCUCXR_0162_1)
+MCUCXR_0372_1         Female           49                                                                                                                                                                                                                                                                                        Patient's Sex: F Patient's Age: 049Y rt pleural effusion some infoltrate likely in outer RUL
+MCUCXR_0375_1         Female           49                                                                                                                                                                                                                                                                          Patient's Sex: F Patient's Age: 049Y improving rt pleural effusion and the RUL infiltrate is less apparent
+MCUCXR_0266_1           Male           47                                                                                                                                                                                                                                                                                 Patient's Sex: M Patient's Age: 047Y peripheral homogeneous infiltrate LUL; active pneumonia likely
+MCUCXR_0301_1           Male           47                                                                                                        Patient's Sex: M Patient's Age: 047Y persistent rt pleural peel with some interval improvement with focal atelectasis in rt lung; anterior wedging of T5, T6 with loss of intervertebral disc space. Findings consistent with h/o spinal TB and pleural TB. Currently on Rx.
+MCUCXR_0331_1           Male           47                                                                                                                                                                                                                                                                                                                Patient's Sex: M Patient's Age: 047Y inactive appearing RUL TB scars
+MCUCXR_0218_1         Female           46                                                                                                                                                                                                                 Patient's Sex: F Patient's Age: 046Y inactive and partly calcified scars and granulomas in RUL. pt completed 4HRZE 4HP DOT for neg culture smear (positive disease)
+MCUCXR_0126_1           Male           46                                                                                                                                                                                                                                                                         Patient's Sex: M Patient's Age: 046Y large right pleural effusion, positive TST, TB pleural effusion likely
+MCUCXR_0354_1           Male           46                                                                                                                                                                                                                                                                              Patient's Sex: M Patient's Age: 046Y bilateral calcified granulomas scars consistent with inactive TB.
+

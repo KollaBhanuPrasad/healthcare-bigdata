@@ -1,0 +1,21 @@
+# Python cache
+__pycache__/
+*.pyc
+venv/
+.venv/
+
+# Dataset files - keep locally, don't upload
+data/*
+!data/metadata.csv
+
+# Generated storage and outputs
+hdfs_storage/
+data/processed/
+data/features/
+
+# ML models
+models/
+
+# Temporary files
+.ipynb_checkpoints/
+.env

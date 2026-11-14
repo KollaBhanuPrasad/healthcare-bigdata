@@ -1,0 +1,36 @@
+=================================================================
+       HADOOP MAPREDUCE HEALTHCARE ANALYTICS REPORT       
+=================================================================
+
+[1] DISEASE DISTRIBUTION & CASE COUNTS:
+    - Total Validated Cases : 138
+    - Normal Diagnoses      : 80 (57.97%)
+    - TB-Positive Diagnoses : 58 (42.03%)
+
+[2] DEMOGRAPHIC STRATIFICATION (GENDER):
+    - Normal -> Female          : 53 patients
+    - Normal -> Male            : 26 patients
+    - TB -> Positive -> Female  : 21 patients
+    - TB -> Positive -> Male    : 37 patients
+
+[3] PATIENT AGE STATISTICS:
+    - Normal Patients        : Mean=34.3 yrs | Min=4 | Max=70 (N=80)
+    - TB-Positive Patients   : Mean=48.1 yrs | Min=14 | Max=89 (N=58)
+
+[4] DATA STORAGE UTILIZATION:
+    - Normal CXR Images      : Total=333.64 MB | Average Size=4270.6 KB
+    - TB CXR Images          : Total=251.94 MB | Average Size=4448.1 KB
+=================================================================
+
+
+=================================================================
+EQUIVALENT HADOOP CLUSTER STREAMING CLI COMMAND:
+=================================================================
+hadoop jar $HADOOP_HOME/share/hadoop/tools/lib/hadoop-streaming-*.jar \
+  -D mapreduce.job.name='Healthcare_TB_Metadata_Analysis' \
+  -input /healthcare/data/metadata.csv \
+  -output /healthcare/output/mapreduce_analytics \
+  -mapper 'python mapper.py' \
+  -reducer 'python reducer.py' \
+  -file mapper.py \
+  -file reducer.py
